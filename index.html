@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Dietizador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: cabecera con selector de menú; columna principal = rejilla de días; columna lateral fija = lista de la compra por secciones */
+:root{
+  --bg:#F2F5F1; --surface:#FFFFFF; --ink:#17251E; --muted:#5A6A61; --line:#DAE3DC;
+  --accent:#1E6A4E; --accent-ink:#FFFFFF; --accent-soft:#E0EEE6;
+  --citrus:#F2B33D; --citrus-soft:#FCF0D6; --citrus-ink:#6A4800;
+  --berry:#B4436C; --berry-soft:#F7E3EA;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow:0 10px 30px rgba(20,40,30,.18);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1613; --surface:#17211C; --ink:#E6EEE9; --muted:#9AADA2; --line:#2A3830;
+  --accent:#62C99C; --accent-ink:#0C1A13; --accent-soft:#1D372B;
+  --citrus:#E8AE3F; --citrus-soft:#3A2F17; --citrus-ink:#F4D28E;
+  --berry:#E68BAB; --berry-soft:#3B2230; --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1613; --surface:#17211C; --ink:#E6EEE9; --muted:#9AADA2; --line:#2A3830;
+  --accent:#62C99C; --accent-ink:#0C1A13; --accent-soft:#1D372B;
+  --citrus:#E8AE3F; --citrus-soft:#3A2F17; --citrus-ink:#F4D28E;
+  --berry:#E68BAB; --berry-soft:#3B2230; --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:20px 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.main{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ttl{font-family:var(--display);font-weight:800;font-size:24px;margin:0}
+#v-compra{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;gap:12px}
+#v-compra .ttl{font-size:20px}
+#v-compra .shop{columns:auto}
+#v-compra .sec{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 0 0;margin:0 0 8px}
+@media (min-width:1000px){
+  .main,header{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:end}
+  .picker{flex:none}
+  .main{align-items:stretch}
+  #v-compra{contain:size;overflow:hidden}
+  #v-compra .shop{flex:1;min-height:0;overflow-y:auto;padding-right:6px;margin-right:-6px}
+}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,40px);letter-spacing:-.02em;margin:0;line-height:1}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:6px 0 0;font-size:14px}
+
+.picker{display:flex;flex-direction:column;gap:6px;min-width:0;flex:0 1 380px}
+.picker label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.prow{display:flex;gap:6px}
+.sel{position:relative;flex:1;min-width:0}
+.sel select{appearance:none;-webkit-appearance:none;width:100%;font:700 16px var(--body);color:var(--ink);background:var(--surface);
+  border:1.5px solid var(--accent);border-radius:12px;padding:11px 40px 11px 14px;cursor:pointer}
+.sel::after{content:"";position:absolute;right:15px;top:50%;width:8px;height:8px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.nav{width:44px;flex:none;font:700 18px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;cursor:pointer}
+.nav:hover,.sel select:hover{border-color:var(--accent)}
+.mdesc{margin:0;color:var(--muted);font-size:14px}
+
+.summary{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:var(--accent-soft);color:var(--ink);font-variant-numeric:tabular-nums}
+.pill.c{background:var(--citrus-soft);color:var(--citrus-ink)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.day.today{border-color:var(--citrus);box-shadow:0 0 0 2px var(--citrus) inset}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline}
+.dayhead h2{font-family:var(--display);font-weight:800;font-size:20px;margin:0}
+.badge{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--citrus);color:#3B2800;padding:3px 8px;border-radius:999px}
+.slot{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:10px;background:var(--bg);border:1px solid transparent}
+.slot:hover{border-color:var(--accent)}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border-radius:6px;width:68px;text-align:center;display:inline-block}
+.tag.desayuno{background:var(--citrus-soft);color:var(--citrus-ink)}
+.tag.cena{background:var(--accent-soft);color:var(--accent)}
+.tag.postre,.tag.picar{background:var(--berry-soft);color:var(--berry)}
+.slot .nm{font-weight:600;font-size:14px;line-height:1.25;min-width:0}
+.slot .meta{display:block;font-weight:500;font-size:12px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.slot .arr{color:var(--muted);font-size:18px}
+.off{font-size:13px;color:var(--muted);padding:9px 10px;border:1px dashed var(--line);border-radius:10px}
+.slot:focus-visible,.chk:focus-within,.btn:focus-visible,.close:focus-visible,.nav:focus-visible,.sel select:focus-visible{outline:2px solid var(--citrus);outline-offset:2px}
+
+.snacks{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.snacks h2,.sec h2{font-family:var(--display);font-weight:800;font-size:20px;margin:0}
+.snacks p{margin:0;color:var(--muted);font-size:13px}
+.snackgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+
+.shopbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.prog{flex:1 1 220px;display:flex;align-items:center;gap:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:600 14px var(--body);padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.shop{columns:300px;column-gap:12px}
+.sec{break-inside:avoid;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 12px;display:flex;flex-direction:column;gap:4px}
+.sec h2{font-size:17px;margin-bottom:4px}
+.chk{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start;padding:7px 4px;border-radius:8px;cursor:pointer}
+.chk input{width:20px;height:20px;margin:0;accent-color:var(--accent);cursor:pointer}
+.chk .it{font-weight:600;font-size:14.5px}
+.chk .why{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.chk .q{font-size:13px;color:var(--muted);font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chk.done .it,.chk.done .q{text-decoration:line-through;color:var(--muted)}
+.chk .basic{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--citrus-ink);background:var(--citrus-soft);padding:1px 5px;border-radius:4px;margin-left:6px;vertical-align:2px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:30}
+
+.ov{position:fixed;inset:0;background:rgba(10,20,15,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;box-shadow:var(--shadow);
+  padding:20px max(20px, env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px, env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+@media (min-width:700px){.ov{align-items:center}.sheet{border-radius:18px}}
+.shead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.shead h3{font-family:var(--display);font-weight:800;font-size:24px;margin:6px 0 0;line-height:1.1;text-wrap:balance}
+.close{border:0;background:var(--bg);color:var(--ink);width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;flex:none}
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fact{background:var(--bg);border-radius:10px;padding:8px 10px}
+.fact b{display:block;font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+.fact span{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.sheet h4{margin:0 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ing{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ing li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.ing li span:last-child{color:var(--muted);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:8px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:26px 1fr;gap:10px;font-size:14.5px}
+.steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;display:grid;place-items:center}
+.note{background:var(--citrus-soft);color:var(--citrus-ink);border-radius:10px;padding:10px 12px;font-size:13.5px}
+.foot{color:var(--muted);font-size:12.5px;max-width:70ch;margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Dietiza<span>dor</span></h1>
+    </div>
+    <div class="picker">
+      <label for="menu">Dieta</label>
+      <div class="prow">
+        <button class="nav" id="prev" aria-label="Dieta anterior">‹</button>
+        <div class="sel"><select id="menu"></select></div>
+        <button class="nav" id="next" aria-label="Dieta siguiente">›</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+    <section id="v-semana" class="col">
+      <div class="grid" id="grid"></div>
+      <div class="snacks">
+        <div><h2>Para picar por la tarde</h2><p>Solo si hay hambre. Uno por persona. Iguales en todas las dietas.</p></div>
+        <div class="snackgrid" id="snacks"></div>
+      </div>
+    </section>
+
+    <aside id="v-compra" class="col">
+      <h2 class="ttl">Lista de la compra</h2>
+      <div class="shopbar">
+        <div class="prog"><span id="pc">0 / 0</span><div class="bar"><i id="pb"></i></div></div>
+        <div class="btns">
+          <button class="btn pri" id="copy">Copiar lo que falta</button>
+          <button class="btn" id="reset">Desmarcar todo</button>
+        </div>
+      </div>
+      <div class="shop" id="shop"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="ov" id="ov" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rt">
+    <div class="shead">
+      <div><span class="tag" id="rtag"></span><h3 id="rt"></h3></div>
+      <button class="close" id="close" aria-label="Cerrar">×</button>
+    </div>
+    <div class="facts">
+      <div class="fact"><b id="rmin"></b><span>minutos</span></div>
+      <div class="fact"><b id="rprot"></b><span>proteína</span></div>
+    </div>
+    <div><h4 id="ringh">Ingredientes (para 2)</h4><ul class="ing" id="ring"></ul></div>
+    <div><h4>Pasos</h4><ol class="steps" id="rsteps"></ol></div>
+    <div class="note" id="rtip"></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- Productos (sección + unidad) ---------- */
+const SEC={fr:"Frutería",cp:"Carne, pescado y charcutería",hl:"Huevos y lácteos",de:"Despensa",co:"Congelados"};
+const I={
+ espinacas:["Espinacas frescas","fr","g"],tomate:["Tomates","fr"],pepino:["Pepinos","fr"],cebolla_morada:["Cebolla morada","fr"],
+ cebolla:["Cebollas","fr"],lechuga:["Lechuga / ensalada de bolsa","fr",["bolsa","bolsas"]],patata:["Patatas medianas","fr"],
+ limon:["Limones","fr"],champi:["Champiñones laminados","fr","g"],platano:["Plátanos","fr"],manzana:["Manzanas","fr"],
+ mandarina:["Mandarinas","fr"],zanahoria:["Zanahorias","fr"],pimiento:["Pimientos","fr"],calabacin:["Calabacines","fr"],
+ ajo:["Ajos","fr",["diente","dientes"]],aguacate:["Aguacates","fr"],esparragos:["Espárragos trigueros","fr",["manojo","manojos"]],kiwi:["Kiwis","fr"],
+ pollo:["Filetes de pechuga de pollo","cp","g"],contramuslo:["Contramuslos de pollo deshuesados","cp","g"],
+ pavo_lonchas:["Pechuga de pavo en lonchas","cp","g"],pavo_filete:["Filetes de pavo","cp","g"],pavo_picado:["Carne picada de pavo","cp","g"],
+ atun:["Atún al natural","cp",["lata","latas"]],sardinas:["Sardinas en lata","cp",["lata","latas"]],jamon_cocido:["Jamón cocido extra","cp","g"],
+ jamon_serrano:["Taquitos de jamón serrano","cp","g"],burger_pollo:["Burgers de pollo","cp"],
+ huevo:["Huevos","hl"],claras:["Claras de huevo (brick)","hl","ml"],yogur_prot:["Yogur alto en proteína","hl"],
+ queso_batido:["Queso fresco batido 0 %","hl","g"],yogur_griego:["Yogur griego ligero","hl"],yogur_natural:["Yogur natural","hl"],
+ mozzarella:["Mozzarella light","hl",["bola","bolas"]],gelatina:["Gelatina 0 %","hl"],leche:["Leche semidesnatada","hl","ml"],
+ queso_fresco:["Queso fresco tipo Burgos 0 %","hl","g"],queso_rallado:["Queso rallado light","hl","g"],
+ queso_lonchas:["Queso en lonchas light","hl",["loncha","lonchas"]],feta:["Queso feta","hl","g"],parmesano:["Parmesano","hl","g"],
+ crema_calabacin:["Crema de calabacín (brick)","de","ml"],crema_calabaza:["Crema de calabaza (brick)","de","ml"],
+ crema_champi:["Crema de champiñones (brick)","de","ml"],crema_verduras:["Crema de verduras (brick)","de","ml"],
+ caldo:["Caldo de pollo (brick)","de","ml"],sopa_sobre:["Sopa instantánea","de",["sobre","sobres"]],
+ garbanzos:["Garbanzos cocidos","de",["bote","botes"]],lentejas:["Lentejas cocidas","de",["bote","botes"]],alubias:["Alubias cocidas","de",["bote","botes"]],
+ tortilla_int:["Tortillas integrales (wrap)","de"],pan_molde:["Pan integral de molde","de",["rebanada","rebanadas"]],
+ pan_burger:["Pan de hamburguesa integral","de"],avena:["Copos de avena","de","g"],tomate_triturado:["Tomate triturado","de","g"],
+ tortitas_arroz:["Tortitas de arroz","de"],hummus:["Hummus","de","g"],arroz_micro:["Arroz de microondas","de",["vaso","vasos"]],
+ fideos:["Fideos finos","de","g"],fideos_arroz:["Fideos de arroz","de","g"],maiz:["Maíz dulce","de",["lata","latas"]],
+ aceitunas:["Aceitunas","de"],pisto:["Pisto (bote)","de","g"],leche_coco:["Leche de coco light","de","ml"],
+ frutos_secos:["Nueces o almendras naturales","de","g"],
+ pan_desayunos:["Pan Desayunos","de",null,2],embutidos_desayunos:["Embutidos Desayunos","cp",null,2],
+ cacao:["Cacao puro desgrasado","de",null,1],soja:["Salsa de soja baja en sal","de",null,1],aceite:["Aceite de oliva virgen extra","de",null,1],
+ vinagre:["Vinagre","de",null,1],miel:["Miel","de",null,1],canela:["Canela","de",null,1],oregano:["Orégano","de",null,1],comino:["Comino","de",null,1],
+ ajo_polvo:["Ajo en polvo","de",null,1],pimenton:["Pimentón","de",null,1],curry:["Curry en polvo","de",null,1],
+ especias_fajitas:["Especias para fajitas","de",null,1],
+ verduras_wok:["Verduras para wok","co",["bolsa","bolsas"]],merluza:["Lomos de merluza","co","g"],judias:["Judías verdes","co","g"],
+ frutos_rojos:["Frutos rojos","co","g"],gambas:["Gambas peladas","co","g"],bacalao:["Lomos de bacalao","co","g"],
+ espinacas_cong:["Espinacas","co","g"],guisantes:["Guisantes","co","g"]
+};
+const frac=q=>{const w=Math.floor(q),r=q-w;return r>0.01?(w?w:"")+"½":String(w);};
+function fmt(k,q,ceil){
+  const it=I[k],u=it[2];
+  if(it[3]&&q==null)return "al gusto";
+  if(u==="g")return q>=1000?(q/1000).toLocaleString("es-ES")+" kg":q+" g";
+  if(u==="ml")return q>=1000?(q/1000).toLocaleString("es-ES")+" L":q+" ml";
+  const v=ceil?Math.ceil(q):q,s=ceil?String(v):frac(v);
+  if(!u)return s;
+  return s+" "+(v>1?u[1]:u[0]);
+}
+
+/* ---------- Recetas (cantidades para 2) ---------- */
+const R={
+/* postres */
+ p1:{n:"Yogur proteico con canela",t:"postre",min:1,prot:15,ing:[["yogur_prot",2],["canela",null]],pasos:["Espolvorea canela y listo."],tip:"Una pizca de edulcorante si os apetece más dulce."},
+ p2:{n:"Manzana asada al micro",t:"postre",min:5,prot:0,ing:[["manzana",2],["canela",null]],pasos:["Descorazona y corta en gajos.","Canela por encima, tapa y micro 3–4 min."],tip:"Sabe a postre de abuela."},
+ p3:{n:"Queso batido con cacao",t:"postre",min:2,prot:10,ing:[["queso_batido",250],["cacao",null,"2 cdtas"]],pasos:["Mezcla bien el cacao con el queso batido.","Reparte en dos boles."],tip:"Frío de nevera está mucho mejor."},
+ p4:{n:"Mandarinas",t:"postre",min:0,prot:1,ing:[["mandarina",4]],pasos:["Dos por persona."],tip:"Fruta de temporada: barata y saciante."},
+ p5:{n:"Gelatina 0 % con mandarina",t:"postre",min:1,prot:2,ing:[["gelatina",2],["mandarina",1]],pasos:["Trocea la mandarina encima de la gelatina."],tip:"Muy ligero, para los días de más hambre."},
+ p6:{n:"Kiwis",t:"postre",min:1,prot:2,ing:[["kiwi",4]],pasos:["Dos por persona, partidos por la mitad y a cucharadas."],tip:"Van bien para la digestión."},
+ p7:{n:"Yogur proteico con frutos rojos",t:"postre",min:2,prot:15,ing:[["yogur_prot",2],["frutos_rojos",150]],pasos:["Descongela los frutos rojos 1 min en el micro.","Échalos sobre el yogur."],tip:"El jugo de los frutos rojos hace de sirope."},
+/* para picar (por persona) */
+ s1:{n:"Yogur proteico",t:"picar",pp:1,min:0,prot:15,ing:[["yogur_prot",1]],pasos:["Directo de la nevera."],tip:"La opción que más sacia."},
+ s2:{n:"Fruta",t:"picar",pp:1,min:0,prot:1,ing:[["manzana",1]],pasos:["Una pieza: manzana, plátano o un par de mandarinas."],tip:"Mejor fruta entera que zumo: sacia más."},
+ s3:{n:"Tortitas de arroz",t:"picar",pp:1,min:0,prot:2,ing:[["tortitas_arroz",3]],pasos:["Tal cual o con una loncha de pavo encima."],tip:"Crujientes y ligeras para picar."},
+
+/* MENÚ 1 · Clásico */
+ c1:{n:"Crema de calabacín + tortilla de espinacas",t:"cena",min:10,prot:26,ing:[["crema_calabacin",500],["huevo",4],["claras",200],["espinacas",100],["aceite",null,"1 cdta"]],
+  pasos:["Calienta la crema en dos boles al micro, 2–3 min.","Saltea las espinacas con el aceite, 1 min.","Bate huevos y claras con sal y échalos encima.","Cuaja 2 min por lado y parte en dos."],tip:"Las claras de brick suben mucho la proteína."},
+ c2:{n:"Pollo a la plancha con verduras al wok",t:"cena",min:15,prot:47,ing:[["pollo",400],["verduras_wok",1],["soja",null,"2 cdas"],["ajo_polvo",null],["aceite",null,"1 cda"]],
+  pasos:["Corta el pollo en tiras, sal y ajo en polvo.","Dóralo en sartén muy caliente con la mitad del aceite, 5 min. Reserva.","Saltea las verduras congeladas con el resto del aceite, 6–7 min.","Junta todo, añade la soja y 1 min más."],tip:"Día de entreno: añade 1 vaso de arroz de microondas para los dos."},
+ c3:{n:"Merluza al limón con patata y judías",t:"cena",min:15,prot:36,ing:[["merluza",400],["judias",300],["patata",1],["limon",1],["aceite",null,"1 cda"]],
+  pasos:["Patata en dados + judías en recipiente tapado con un chorrito de agua: micro 8 min.","Merluza a la plancha 3–4 min por lado.","Sal, ajo y zumo de limón por encima.","Aliña la verdura con el aceite."],tip:"Pasa la merluza del congelador a la nevera por la mañana."},
+ c4:{n:"Sopa + ensalada de garbanzos y atún",t:"cena",min:8,prot:30,ing:[["sopa_sobre",2],["garbanzos",1],["atun",3],["tomate",2],["pepino",1],["cebolla_morada",0.5],["aceite",null,"1 cda"],["vinagre",null]],
+  pasos:["Prepara las sopas con agua caliente.","Lava y escurre bien los garbanzos.","Trocea tomate, pepino y cebolla.","Mezcla con el atún escurrido y aliña."],tip:"Sin cocinar: la cena para el día que llegáis tarde."},
+ c5:{n:"Wraps de pollo con salsa de yogur",t:"cena",min:15,prot:40,ing:[["tortilla_int",2],["pollo",300],["lechuga",0.5],["tomate",1],["yogur_griego",1],["pepino",0.5],["comino",null]],
+  pasos:["Pollo en tiras a la plancha con sal y comino.","Salsa: yogur + pepino rallado + ajo + sal.","Calienta las tortillas 20 s en la sartén.","Rellena con lechuga, tomate, pollo y salsa."],tip:"Una tortilla por persona y ensalada extra si hay hambre."},
+ c6:{n:"Pizza fit de tortilla integral",t:"cena",min:12,prot:28,ing:[["tortilla_int",2],["tomate_triturado",100],["mozzarella",1],["pavo_lonchas",100],["champi",150],["oregano",null],["lechuga",0.5]],
+  pasos:["Horno a 220 °C (o air fryer a 200 °C).","Tomate y orégano sobre cada tortilla.","Pavo, champiñones y mozzarella en trozos.","8–10 min hasta que esté crujiente. Ensalada al lado."],tip:"Capricho del sábado sin salirse del plan."},
+
+/* MENÚ 2 · Mediterráneo */
+ m2a:{n:"Lentejas salteadas con huevo",t:"cena",min:12,prot:21,ing:[["lentejas",1],["pimiento",1],["cebolla",1],["tomate_triturado",100],["huevo",2],["pimenton",null],["aceite",null,"1 cda"]],
+  pasos:["Pocha cebolla y pimiento picados con el aceite, 5 min.","Añade tomate triturado y pimentón, 2 min.","Echa las lentejas lavadas y calienta 3 min.","Sirve con un huevo a la plancha encima de cada plato."],tip:"Legumbre de bote: barata, saciante y lista en minutos."},
+ m2b:{n:"Pollo al ajillo con ensalada",t:"cena",min:15,prot:46,ing:[["pollo",400],["ajo",4],["lechuga",1],["tomate",2],["aceite",null,"1 cda"],["vinagre",null]],
+  pasos:["Pollo en dados con sal.","Dora los ajos laminados en el aceite y sácalos.","Haz el pollo en ese aceite, 6–7 min; devuelve los ajos.","Ensalada de lechuga y tomate al lado."],tip:"Un chorrito de vino blanco o limón al final le va genial."},
+ m2c:{n:"Ensalada de sardinas con tostada",t:"cena",min:8,prot:26,ing:[["sardinas",2],["tomate",2],["pepino",1],["cebolla_morada",0.5],["aceitunas",12],["pan_molde",2]],
+  pasos:["Trocea tomate, pepino y cebolla.","Añade sardinas escurridas y aceitunas.","Vinagre y sal; el aceite de la lata ya aliña.","Una tostada por persona."],tip:"Las sardinas en lata son baratas y tienen omega-3."},
+ m2d:{n:"Crema de calabaza + filete de pavo",t:"cena",min:10,prot:37,ing:[["crema_calabaza",500],["pavo_filete",300],["oregano",null],["aceite",null,"1 cdta"]],
+  pasos:["Calienta la crema en el micro, 2–3 min.","Pavo a la plancha con sal y orégano, 3 min por lado."],tip:"Unas pipas de calabaza por encima si tenéis."},
+ m2e:{n:"Gambas al ajillo con calabacín",t:"cena",min:12,prot:32,ing:[["gambas",300],["calabacin",2],["ajo",3],["pan_molde",2],["aceite",null,"1 cda"]],
+  pasos:["Calabacín en medias lunas a la plancha, 5 min. Reserva.","Ajos laminados en el aceite (con guindilla si os gusta).","Gambas 2–3 min hasta que cambien de color.","Junta todo y sirve con una tostada para mojar."],tip:"Descongela las gambas en agua fría 10 min."},
+ m2f:{n:"Pisto con huevo",t:"cena",min:12,prot:25,ing:[["pisto",400],["huevo",4],["claras",100],["pan_molde",2]],
+  pasos:["Calienta el pisto en una sartén.","Haz 4 huecos y casca un huevo en cada uno; reparte las claras alrededor.","Tapa y cocina 4–5 min a fuego bajo.","Con una tostada por persona."],tip:"Huevos al plato versión ligera."},
+
+/* MENÚ 3 · Exprés */
+ m3a:{n:"Bol de arroz, atún y maíz",t:"cena",min:5,prot:32,ing:[["arroz_micro",1],["atun",3],["maiz",1],["tomate",1],["lechuga",0.5],["aceite",null,"1 cdta"]],
+  pasos:["Calienta el arroz en el micro, 1 min.","Reparte en dos boles con lechuga, tomate, maíz y atún.","Aliña con aceite, sal y unas gotas de soja o vinagre."],tip:"5 minutos de reloj."},
+ m3b:{n:"Revuelto de gambas y trigueros",t:"cena",min:10,prot:36,ing:[["gambas",250],["esparragos",1],["huevo",3],["claras",100],["aceite",null,"1 cdta"]],
+  pasos:["Trigueros troceados a la sartén, 4 min.","Añade las gambas, 2 min.","Echa huevos y claras batidos y remueve hasta cuajar."],tip:"Con una tostada si es día de entreno."},
+ m3c:{n:"Sopa + sándwich de pavo y queso fresco",t:"cena",min:7,prot:32,ing:[["sopa_sobre",2],["pan_molde",4],["pavo_lonchas",150],["queso_fresco",150],["tomate",1]],
+  pasos:["Prepara las sopas.","Monta los sándwiches con pavo, queso fresco en lonchas y tomate.","Tuéstalos en la sartén si queréis."],tip:"Cena de sofá sin culpa."},
+ m3d:{n:"Ensalada César fit",t:"cena",min:12,prot:40,ing:[["pollo",300],["lechuga",1],["parmesano",20],["yogur_griego",1],["limon",0.5],["pan_molde",1]],
+  pasos:["Pollo a la plancha y en tiras.","Pan tostado en dados para los picatostes.","Salsa: yogur + limón + parmesano rallado + ajo + sal.","Mezcla todo con la lechuga."],tip:"La salsa de yogur sustituye a la César de bote."},
+ m3e:{n:"Crema de verduras + tortilla de atún",t:"cena",min:10,prot:32,ing:[["crema_verduras",500],["huevo",3],["claras",100],["atun",1],["aceite",null,"1 cdta"]],
+  pasos:["Calienta la crema.","Bate huevos y claras con el atún desmigado.","Cuaja la tortilla y parte en dos."],tip:"Despensa pura: sin nada fresco."},
+ m3f:{n:"Hamburguesa fit",t:"cena",min:12,prot:32,ing:[["burger_pollo",2],["pan_burger",2],["queso_lonchas",2],["tomate",1],["lechuga",0.5]],
+  pasos:["Burgers a la plancha, 4 min por lado.","Queso encima al final para que se funda.","Tuesta el pan y monta con lechuga y tomate.","Ensalada al lado en lugar de patatas."],tip:"El capricho del sábado."},
+
+/* MENÚ 4 · Horno */
+ m4a:{n:"Contramuslos al horno con verduras",t:"cena",min:30,prot:38,ing:[["contramuslo",400],["pimiento",1],["cebolla",1],["calabacin",1],["pimenton",null],["aceite",null,"1 cda"]],
+  pasos:["Horno a 200 °C.","Verduras en trozos grandes en la bandeja con el aceite y sal.","Pollo encima con sal y pimentón.","25 min. Solo 5 de trabajo."],tip:"Más jugoso que la pechuga y igual de barato."},
+ m4b:{n:"Bacalao al horno con tomate",t:"cena",min:25,prot:38,ing:[["bacalao",400],["tomate_triturado",200],["cebolla",1],["pimiento",1],["aceite",null,"1 cda"]],
+  pasos:["Pocha cebolla y pimiento 5 min y añade el tomate.","Pásalo a una fuente con el bacalao encima.","Horno 200 °C, 15 min."],tip:"Descongela el bacalao la noche antes."},
+ m4c:{n:"Albóndigas de pavo con tomate",t:"cena",min:25,prot:42,ing:[["pavo_picado",400],["huevo",1],["ajo_polvo",null],["tomate_triturado",300],["lechuga",0.5]],
+  pasos:["Mezcla carne, huevo, sal y ajo; forma bolitas.","Bandeja de horno a 200 °C, 12 min.","Calienta el tomate, añade las albóndigas y 5 min más.","Ensalada al lado."],tip:"Haz el doble y congela la mitad."},
+ m4d:{n:"Calabacines rellenos de atún",t:"cena",min:25,prot:30,ing:[["calabacin",2],["atun",2],["tomate_triturado",150],["queso_rallado",40]],
+  pasos:["Parte los calabacines a lo largo y vacíalos con una cuchara.","Micro 4 min para ablandarlos.","Pica la pulpa y mézclala con atún y tomate; rellena.","Queso por encima y horno a 220 °C, 10 min."],tip:"El clásico de casa, en versión ligera."},
+ m4e:{n:"Pollo tandoori con arroz",t:"cena",min:25,prot:48,ing:[["pollo",400],["yogur_natural",1],["curry",null,"2 cdtas"],["ajo_polvo",null],["arroz_micro",1]],
+  pasos:["Mezcla el pollo en dados con yogur, curry, ajo y sal.","Horno a 220 °C, 18 min (o air fryer 12 min).","Sirve con el arroz."],tip:"Si lo marinas por la mañana queda aún mejor."},
+ m4f:{n:"Boniato con cottage, pavo salteado y miel",t:"cena",min:15,prot:44,ing:[["boniato",2],["pavo_picado",300],["queso_cottage",200],["miel",null,"2 cdtas"],["ajo_polvo",null],["pimenton",null],["aceite",null,"1 cdta"]],
+  pasos:["Lava los boniatos, pínchalos con un tenedor y micro 8–10 min (o horno a 200 °C, 40 min) hasta que estén tiernos.","Saltea el pavo picado con el aceite, sal, ajo en polvo y pimentón, 6–7 min, desmigándolo bien.","Abre los boniatos por la mitad y rellena con el pavo.","Cottage por encima y un chorreoncito de miel."],tip:"Si haces los boniatos en el horno el fin de semana, aguantan 3–4 días en la nevera."},
+
+/* MENÚ 5 · Cuchara */
+ m5a:{n:"Sopa de fideos con pollo",t:"cena",min:15,prot:34,ing:[["caldo",1000],["fideos",40],["pollo",250],["zanahoria",1]],
+  pasos:["Calienta el caldo con la zanahoria en rodajas.","Añade el pollo en dados pequeños, 5 min.","Echa los fideos y cuece lo que diga el paquete."],tip:"La cena para los días de frío."},
+ m5b:{n:"Crema de champiñones + tortilla de claras",t:"cena",min:10,prot:25,ing:[["crema_champi",500],["huevo",2],["claras",200]],
+  pasos:["Calienta la crema.","Bate huevos y claras con sal y haz una tortilla.","Parte en dos."],tip:"Añade espinacas a la tortilla si os sobran."},
+ m5c:{n:"Garbanzos con espinacas y huevo",t:"cena",min:15,prot:22,ing:[["garbanzos",1],["espinacas_cong",300],["ajo",2],["comino",null],["pimenton",null],["huevo",2],["aceite",null,"1 cda"]],
+  pasos:["Dora el ajo en el aceite, añade las espinacas congeladas, 5 min.","Comino, pimentón y los garbanzos lavados, 5 min más.","Sirve con un huevo cocido por persona encima."],tip:"Plato sevillano de toda la vida."},
+ m5d:{n:"Sopa de picadillo con pavo",t:"cena",min:15,prot:36,ing:[["caldo",1000],["fideos",40],["huevo",2],["jamon_serrano",50],["pavo_filete",200]],
+  pasos:["Cuece los huevos 10 min.","Calienta el caldo y cuece los fideos.","Añade el jamón, el pavo en dados (2 min) y el huevo picado."],tip:"Sopa andaluza con proteína extra."},
+ m5e:{n:"Crema de calabacín + pollo a la plancha",t:"cena",min:12,prot:40,ing:[["crema_calabacin",500],["pollo",300],["aceite",null,"1 cdta"]],
+  pasos:["Calienta la crema.","Pollo a la plancha con sal y especias al gusto."],tip:"Simple y efectivo."},
+ m5f:{n:"Lentejas con pavo y verduras",t:"cena",min:20,prot:38,ing:[["lentejas",1],["pavo_picado",250],["tomate_triturado",150],["cebolla",1],["zanahoria",1],["pimenton",null],["aceite",null,"1 cda"]],
+  pasos:["Pocha cebolla y zanahoria picadas, 5 min.","Dora el pavo picado, 4 min.","Tomate y pimentón, 2 min.","Lentejas lavadas y un vaso de agua, 5 min."],tip:"Sabor de guiso en 20 minutos."},
+
+/* MENÚ 6 · Internacional */
+ m6a:{n:"Fajitas de pollo",t:"cena",min:15,prot:45,ing:[["pollo",400],["pimiento",2],["cebolla",1],["tortilla_int",2],["especias_fajitas",null],["aceite",null,"1 cda"]],
+  pasos:["Pimiento y cebolla en tiras a fuego fuerte, 5 min.","Añade el pollo en tiras y las especias, 6 min.","Calienta las tortillas y rellena."],tip:"Lo que no quepa en la tortilla, al plato."},
+ m6b:{n:"Arroz frito con gambas y huevo",t:"cena",min:12,prot:32,ing:[["arroz_micro",1],["gambas",200],["huevo",3],["guisantes",150],["soja",null,"2 cdas"],["aceite",null,"1 cdta"]],
+  pasos:["Haz un revuelto con los huevos y reserva.","Saltea gambas y guisantes, 3 min.","Añade el arroz y la soja, 2 min a fuego fuerte.","Vuelve a echar el huevo."],tip:"Mejor que el del chino."},
+ m6c:{n:"Curry de pollo y garbanzos",t:"cena",min:20,prot:34,ing:[["pollo",200],["garbanzos",1],["espinacas_cong",200],["leche_coco",100],["tomate_triturado",200],["curry",null,"1 cda"]],
+  pasos:["Dora el pollo en dados, 4 min.","Añade curry, tomate y leche de coco, 3 min.","Garbanzos lavados y espinacas, 8 min a fuego medio."],tip:"Aguanta bien al día siguiente."},
+ m6d:{n:"Ensalada griega con pollo",t:"cena",min:15,prot:40,ing:[["pollo",300],["tomate",2],["pepino",1],["cebolla_morada",0.5],["aceitunas",10],["feta",60],["oregano",null],["aceite",null,"1 cda"]],
+  pasos:["Pollo a la plancha en tiras.","Trocea tomate, pepino y cebolla.","Añade aceitunas, feta desmigado y orégano.","Aceite, sal y vinagre."],tip:"El feta da mucho sabor: no hace falta más."},
+ m6e:{n:"Ramen fit",t:"cena",min:15,prot:36,ing:[["caldo",1000],["fideos_arroz",60],["pollo",200],["huevo",2],["champi",100],["soja",null,"2 cdas"]],
+  pasos:["Huevos cocidos 7 min (yema tierna).","Calienta el caldo con la soja y los champiñones.","Añade el pollo en láminas finas, 3 min, y los fideos.","Sirve con un huevo por persona, partido por la mitad."],tip:"Un poco de jengibre o guindilla si tenéis."},
+ m6f:{n:"Burrito bowl",t:"cena",min:15,prot:38,ing:[["arroz_micro",1],["alubias",1],["pavo_picado",250],["maiz",1],["tomate",1],["lechuga",0.5],["yogur_griego",1],["especias_fajitas",null]],
+  pasos:["Dora el pavo picado con las especias, 6 min.","Calienta arroz y alubias lavadas.","Monta los boles con todo y el yogur como crema agria."],tip:"El capricho mexicano del sábado."}
+};
+
+/* ---------- Menús ---------- */
+const MENUS=[
+ {id:"clasico",n:"Dieta 1",d:"Lo básico que siempre funciona: tortilla, pollo, pescado y una pizza fit el sábado.",c:["c1","c2","c3","c4","c5","c6"],p:["p1","p2","p3","p4","p5","p1"]},
+ {id:"medit",n:"Dieta 2",d:"Legumbre, pescado azul, ajillo y pisto. Sabor de casa.",c:["m2a","m2b","m2c","m2d","m2e","m2f"],p:["p4","p3","p6","p2","p7","p1"]},
+ {id:"expres",n:"Dieta 3",d:"Para semanas liadas: casi todo en 10 minutos o menos.",c:["m3a","m3b","m3c","m3d","m3e","m3f"],p:["p1","p6","p3","p5","p4","p7"]},
+ {id:"horno",n:"Dieta 4",d:"Metes la bandeja y te olvidas. Poco trabajo, algo más de espera.",c:["m4a","m4b","m4c","m4d","m4e","m4f"],p:["p2","p1","p4","p3","p6","p7"]},
+ {id:"cuchara",n:"Dieta 5",d:"Sopas, cremas y legumbre para los días de frío.",c:["m5a","m5b","m5c","m5d","m5e","m5f"],p:["p3","p2","p1","p4","p6","p5"]},
+ {id:"inter",n:"Dieta 6",d:"Fajitas, curry, ramen y burrito bowl, en versión ligera.",c:["m6a","m6b","m6c","m6d","m6e","m6f"],p:["p7","p4","p2","p1","p3","p6"]}
+];
+const DAYS=["Día 1","Día 2","Día 3","Día 4","Día 5","Día 6"];
+const SNACK_STOCK=[["yogur_prot",4],["manzana",2],["platano",2],["mandarina",6],["tortitas_arroz",10]];
+const LABEL={cena:"Cena",desayuno:"Desayuno",postre:"Postre",picar:"Picar"};
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+
+let mi=Math.max(0,MENUS.findIndex(m=>m.id===store.get("dietizador-menu","clasico")));
+let checked=store.get("dietizador-compra-v2",{});
+
+/* ---------- Semana ---------- */
+function slot(id,kind){
+  const r=R[id];const b=document.createElement("button");b.className="slot";b.type="button";
+  b.innerHTML=`<span class="tag ${kind}">${LABEL[kind]}</span><span class="nm">${r.n}</span><span class="arr" aria-hidden="true">›</span>`;
+  b.onclick=()=>openR(id);return b;
+}
+function dayCard(name,items){
+  const c=document.createElement("article");c.className="day";
+  c.innerHTML=`<div class="dayhead"><h2>${name}</h2></div>`;
+  items.forEach(([id,k])=>c.append(slot(id,k)));
+  return c;
+}
+function renderWeek(){
+  const m=MENUS[mi],g=$("grid");g.innerHTML="";
+  DAYS.forEach((d,i)=>g.append(dayCard(d,[[m.c[i],"cena"],[m.p[i],"postre"]])));
+}
+function renderSnacks(){const s=$("snacks");["s2","s1","s3"].forEach(id=>s.append(slot(id,"picar")));}
+
+/* ---------- Receta ---------- */
+function openR(id){
+  const r=R[id];
+  $("rtag").className="tag "+r.t;$("rtag").textContent=LABEL[r.t];$("rt").textContent=r.n;
+  $("rmin").textContent=r.min||"0";$("rprot").textContent=r.prot+" g";
+  $("ringh").textContent=r.pp?"Ingredientes (por persona)":"Ingredientes (para 2)";
+  $("ring").innerHTML=r.ing.map(([k,q,txt])=>`<li><span>${I[k][0]}</span><span>${txt||fmt(k,q)}</span></li>`).join("");
+  $("rsteps").innerHTML=r.pasos.map(p=>`<li><span>${p}</span></li>`).join("");
+  $("rtip").textContent=r.tip;$("ov").hidden=false;$("close").focus();
+}
+function closeR(){$("ov").hidden=true;}
+$("close").onclick=closeR;$("ov").onclick=e=>{if(e.target.id==="ov")closeR();};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeR();});
+
+/* ---------- Compra (se calcula del menú) ---------- */
+function buildList(){
+  const m=MENUS[mi],acc={};
+  const add=(k,q)=>{const a=acc[k]||(acc[k]={q:0});if(q!=null)a.q+=q;};
+  m.c.forEach((id,i)=>{R[id].ing.forEach(([k,q])=>add(k,q));R[m.p[i]].ing.forEach(([k,q])=>add(k,q));});
+  SNACK_STOCK.forEach(([k,q])=>add(k,q));
+  add("pan_desayunos",null);add("embutidos_desayunos",null);
+  const out={};Object.keys(SEC).forEach(s=>out[s]=[]);
+  Object.entries(acc).forEach(([k,a])=>out[I[k][1]].push({k,q:a.q,basic:I[k][3]===1,free:I[k][3]===2}));
+  Object.values(out).forEach(arr=>arr.sort((x,y)=>(y.free-x.free)||(x.basic-y.basic)||I[x.k][0].localeCompare(I[y.k][0],"es")));
+  return out;
+}
+let LIST={};
+function renderShop(){
+  LIST=buildList();const s=$("shop"),m=MENUS[mi];s.innerHTML="";let total=0,done=0;
+  Object.entries(LIST).forEach(([sec,items])=>{
+    if(!items.length)return;
+    const box=document.createElement("div");box.className="sec";box.innerHTML=`<h2>${SEC[sec]}</h2>`;
+    items.forEach(it=>{
+      const key=m.id+"|"+it.k,on=!!checked[key];total++;if(on)done++;
+      const l=document.createElement("label");l.className="chk"+(on?" done":"");
+      l.innerHTML=`<input type="checkbox" id="c-${m.id}-${it.k}" ${on?"checked":""}><span><span class="it">${I[it.k][0]}${it.basic?'<span class="basic">despensa</span>':""}</span></span><span class="q">${it.basic||it.free?"":fmt(it.k,it.q,true)}</span>`;
+      l.querySelector("input").onchange=e=>{checked[key]=e.target.checked;store.set("dietizador-compra-v2",checked);renderShop();};
+      box.append(l);
+    });
+    s.append(box);
+  });
+  $("pc").textContent=`${done} / ${total}`;$("pb").style.width=(total?done/total*100:0)+"%";
+}
+$("reset").onclick=()=>{const p=MENUS[mi].id+"|";Object.keys(checked).forEach(k=>{if(k.startsWith(p))delete checked[k];});store.set("dietizador-compra-v2",checked);renderShop();toast("Lista desmarcada");};
+$("copy").onclick=()=>{
+  const m=MENUS[mi];
+  const txt="Compra · "+m.n+"\n\n"+Object.entries(LIST).map(([sec,items])=>{
+    const f=items.filter(it=>!checked[m.id+"|"+it.k]);
+    return f.length?SEC[sec].toUpperCase()+"\n"+f.map(it=>"- "+I[it.k][0]+(it.basic?" (revisar)":it.free?"":" ("+fmt(it.k,it.q,true)+")")).join("\n"):"";
+  }).filter(Boolean).join("\n\n");
+  try{navigator.clipboard.writeText(txt).then(()=>toast("Lista copiada"),()=>fallback(txt));}catch(e){fallback(txt);}
+};
+function fallback(t){const ta=document.createElement("textarea");ta.value=t;document.body.append(ta);ta.select();
+  try{document.execCommand("copy");toast("Lista copiada");}catch(e){toast("No se pudo copiar");}ta.remove();}
+let tt;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,1800);}
+
+/* ---------- Selector de menú ---------- */
+const sel=$("menu");
+MENUS.forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textContent=m.n;sel.append(o);});
+function setMenu(i){mi=(i+MENUS.length)%MENUS.length;sel.value=mi;store.set("dietizador-menu",MENUS[mi].id);renderWeek();renderShop();}
+sel.onchange=()=>setMenu(+sel.value);
+$("prev").onclick=()=>setMenu(mi-1);$("next").onclick=()=>setMenu(mi+1);
+renderSnacks();setMenu(mi);
+</script>
+
+</body>
+</html>
