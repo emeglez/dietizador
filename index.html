@@ -39,6 +39,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .ttl{font-family:var(--display);font-weight:800;font-size:24px;margin:0}
 #v-compra{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;gap:12px}
 #v-compra .ttl{font-size:20px}
+.est{font-family:var(--body);font-weight:600;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 #v-compra .shop{columns:auto}
 #v-compra .sec{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 0 0;margin:0 0 8px}
 @media (min-width:1000px){
@@ -154,14 +155,10 @@ h1 span{color:var(--accent)}
   <div class="main">
     <section id="v-semana" class="col">
       <div class="grid" id="grid"></div>
-      <div class="snacks">
-        <div><h2>Para picar por la tarde</h2><p>Solo si hay hambre. Uno por persona. Iguales en todas las dietas.</p></div>
-        <div class="snackgrid" id="snacks"></div>
-      </div>
     </section>
 
     <aside id="v-compra" class="col">
-      <h2 class="ttl">Lista de la compra</h2>
+      <h2 class="ttl">Lista de la compra <span class="est" id="est"></span></h2>
       <div class="shopbar">
         <div class="prog"><span id="pc">0 / 0</span><div class="bar"><i id="pb"></i></div></div>
         <div class="btns">
@@ -199,29 +196,29 @@ const I={
  cebolla:["Cebollas","fr"],lechuga:["Lechuga / ensalada de bolsa","fr",["bolsa","bolsas"]],patata:["Patatas medianas","fr"],
  limon:["Limones","fr"],champi:["Champiñones laminados","fr","g"],platano:["Plátanos","fr"],manzana:["Manzanas","fr"],
  mandarina:["Mandarinas","fr"],zanahoria:["Zanahorias","fr"],pimiento:["Pimientos","fr"],calabacin:["Calabacines","fr"],
- ajo:["Ajos","fr",["diente","dientes"]],aguacate:["Aguacates","fr"],esparragos:["Espárragos trigueros","fr",["manojo","manojos"]],kiwi:["Kiwis","fr"],
+ ajo:["Ajos","fr",["diente","dientes"]],aguacate:["Aguacates","fr"],esparragos:["Espárragos trigueros","fr",["manojo","manojos"]],kiwi:["Kiwis","fr"],boniato:["Boniatos medianos","fr"],fresas:["Fresas","fr","g"],
  pollo:["Filetes de pechuga de pollo","cp","g"],contramuslo:["Contramuslos de pollo deshuesados","cp","g"],
  pavo_lonchas:["Pechuga de pavo en lonchas","cp","g"],pavo_filete:["Filetes de pavo","cp","g"],pavo_picado:["Carne picada de pavo","cp","g"],
  atun:["Atún al natural","cp",["lata","latas"]],sardinas:["Sardinas en lata","cp",["lata","latas"]],jamon_cocido:["Jamón cocido extra","cp","g"],
  jamon_serrano:["Taquitos de jamón serrano","cp","g"],burger_pollo:["Burgers de pollo","cp"],
  huevo:["Huevos","hl"],claras:["Claras de huevo (brick)","hl","ml"],yogur_prot:["Yogur alto en proteína","hl"],
  queso_batido:["Queso fresco batido 0 %","hl","g"],yogur_griego:["Yogur griego ligero","hl"],yogur_natural:["Yogur natural","hl"],
- mozzarella:["Mozzarella light","hl",["bola","bolas"]],gelatina:["Gelatina 0 %","hl"],leche:["Leche semidesnatada","hl","ml"],
+ mozzarella:["Mozzarella light","hl",["bola","bolas"]],gelatina:["Gelatina 0 %","hl"],natillas_prot:["Natillas o flan proteicos","hl"],leche:["Leche semidesnatada","hl","ml"],
  queso_fresco:["Queso fresco tipo Burgos 0 %","hl","g"],queso_rallado:["Queso rallado light","hl","g"],
- queso_lonchas:["Queso en lonchas light","hl",["loncha","lonchas"]],feta:["Queso feta","hl","g"],parmesano:["Parmesano","hl","g"],
+ queso_lonchas:["Queso en lonchas light","hl",["loncha","lonchas"]],feta:["Queso feta","hl","g"],queso_cottage:["Queso cottage","hl","g"],parmesano:["Parmesano","hl","g"],
  crema_calabacin:["Crema de calabacín (brick)","de","ml"],crema_calabaza:["Crema de calabaza (brick)","de","ml"],
  crema_champi:["Crema de champiñones (brick)","de","ml"],crema_verduras:["Crema de verduras (brick)","de","ml"],
  caldo:["Caldo de pollo (brick)","de","ml"],sopa_sobre:["Sopa instantánea","de",["sobre","sobres"]],
  garbanzos:["Garbanzos cocidos","de",["bote","botes"]],lentejas:["Lentejas cocidas","de",["bote","botes"]],alubias:["Alubias cocidas","de",["bote","botes"]],
  tortilla_int:["Tortillas integrales (wrap)","de"],pan_molde:["Pan integral de molde","de",["rebanada","rebanadas"]],
  pan_burger:["Pan de hamburguesa integral","de"],avena:["Copos de avena","de","g"],tomate_triturado:["Tomate triturado","de","g"],
- tortitas_arroz:["Tortitas de arroz","de"],hummus:["Hummus","de","g"],arroz_micro:["Arroz de microondas","de",["vaso","vasos"]],
+ tortitas_arroz:["Tortitas de arroz","de"],gnocchi:["Gnocchi de patata","de","g"],hummus:["Hummus","de","g"],arroz_micro:["Arroz de microondas","de",["vaso","vasos"]],
  fideos:["Fideos finos","de","g"],fideos_arroz:["Fideos de arroz","de","g"],maiz:["Maíz dulce","de",["lata","latas"]],
  aceitunas:["Aceitunas","de"],pisto:["Pisto (bote)","de","g"],leche_coco:["Leche de coco light","de","ml"],
  frutos_secos:["Nueces o almendras naturales","de","g"],
  pan_desayunos:["Pan Desayunos","de",null,2],embutidos_desayunos:["Embutidos Desayunos","cp",null,2],
  cacao:["Cacao puro desgrasado","de",null,1],soja:["Salsa de soja baja en sal","de",null,1],aceite:["Aceite de oliva virgen extra","de",null,1],
- vinagre:["Vinagre","de",null,1],miel:["Miel","de",null,1],canela:["Canela","de",null,1],oregano:["Orégano","de",null,1],comino:["Comino","de",null,1],
+ vinagre:["Vinagre","de",null,1],miel:["Miel","de",null,1],vainilla:["Esencia de vainilla","de",null,1],canela:["Canela","de",null,1],oregano:["Orégano","de",null,1],comino:["Comino","de",null,1],
  ajo_polvo:["Ajo en polvo","de",null,1],pimenton:["Pimentón","de",null,1],curry:["Curry en polvo","de",null,1],
  especias_fajitas:["Especias para fajitas","de",null,1],
  verduras_wok:["Verduras para wok","co",["bolsa","bolsas"]],merluza:["Lomos de merluza","co","g"],judias:["Judías verdes","co","g"],
@@ -243,17 +240,24 @@ function fmt(k,q,ceil){
 const R={
 /* postres */
  p1:{n:"Yogur proteico con canela",t:"postre",min:1,prot:15,ing:[["yogur_prot",2],["canela",null]],pasos:["Espolvorea canela y listo."],tip:"Una pizca de edulcorante si os apetece más dulce."},
- p2:{n:"Manzana asada al micro",t:"postre",min:5,prot:0,ing:[["manzana",2],["canela",null]],pasos:["Descorazona y corta en gajos.","Canela por encima, tapa y micro 3–4 min."],tip:"Sabe a postre de abuela."},
+ p2:{n:"Fresas con queso batido",t:"postre",min:3,prot:10,ing:[["fresas",250],["queso_batido",250],["vainilla",null,"unas gotas"]],pasos:["Lava y trocea las fresas.","Mezcla el queso batido con la vainilla (y edulcorante si queréis).","Reparte en dos boles con las fresas encima."],tip:"Si no hay fresas buenas, usa frutos rojos congelados."},
  p3:{n:"Queso batido con cacao",t:"postre",min:2,prot:10,ing:[["queso_batido",250],["cacao",null,"2 cdtas"]],pasos:["Mezcla bien el cacao con el queso batido.","Reparte en dos boles."],tip:"Frío de nevera está mucho mejor."},
  p4:{n:"Mandarinas",t:"postre",min:0,prot:1,ing:[["mandarina",4]],pasos:["Dos por persona."],tip:"Fruta de temporada: barata y saciante."},
- p5:{n:"Gelatina 0 % con mandarina",t:"postre",min:1,prot:2,ing:[["gelatina",2],["mandarina",1]],pasos:["Trocea la mandarina encima de la gelatina."],tip:"Muy ligero, para los días de más hambre."},
+ p5:{n:"Natillas o flan proteicos",t:"postre",min:0,prot:15,ing:[["natillas_prot",2]],pasos:["Uno por persona, directo de la nevera."],tip:"Los encontrarás junto a los yogures proteicos."},
  p6:{n:"Kiwis",t:"postre",min:1,prot:2,ing:[["kiwi",4]],pasos:["Dos por persona, partidos por la mitad y a cucharadas."],tip:"Van bien para la digestión."},
  p7:{n:"Yogur proteico con frutos rojos",t:"postre",min:2,prot:15,ing:[["yogur_prot",2],["frutos_rojos",150]],pasos:["Descongela los frutos rojos 1 min en el micro.","Échalos sobre el yogur."],tip:"El jugo de los frutos rojos hace de sirope."},
 /* para picar (por persona) */
- s1:{n:"Yogur proteico",t:"picar",pp:1,min:0,prot:15,ing:[["yogur_prot",1]],pasos:["Directo de la nevera."],tip:"La opción que más sacia."},
  s2:{n:"Fruta",t:"picar",pp:1,min:0,prot:1,ing:[["manzana",1]],pasos:["Una pieza: manzana, plátano o un par de mandarinas."],tip:"Mejor fruta entera que zumo: sacia más."},
  s3:{n:"Tortitas de arroz",t:"picar",pp:1,min:0,prot:2,ing:[["tortitas_arroz",3]],pasos:["Tal cual o con una loncha de pavo encima."],tip:"Crujientes y ligeras para picar."},
+ s4:{n:"Gnocchi crujientes al horno",t:"picar",pp:1,min:15,prot:2,ing:[["gnocchi",60],["pimenton",null],["ajo_polvo",null],["aceite",null,"½ cdta"]],pasos:["Mezcla los gnocchi con el aceite y las especias.","Air fryer a 200 °C 12 min (o horno 220 °C, 18 min), removiendo a mitad."],tip:"Mejor para los días de entreno."},
 
+/* gnocchi */
+ m3g:{n:"Gnocchi salteados con gambas y espinacas",t:"cena",min:12,prot:33,ing:[["gnocchi",250],["gambas",300],["espinacas",150],["ajo",3],["aceite",null,"1 cda"]],
+  pasos:["Dora los gnocchi en la sartén con la mitad del aceite, 5–6 min, sin tocarlos mucho para que se tuesten.","Sácalos y dora el ajo laminado con el resto del aceite.","Añade las gambas, 2–3 min, y las espinacas hasta que bajen.","Vuelve a echar los gnocchi, sal y pimienta."],tip:"No hace falta cocer los gnocchi antes: a la sartén directamente."},
+ m4g:{n:"Gnocchi crujientes al horno con pollo especiado",t:"cena",min:25,prot:38,ing:[["gnocchi",250],["pollo",300],["pimenton",null],["ajo_polvo",null],["oregano",null],["aceite",null,"1 cda"],["lechuga",0.5]],
+  pasos:["Horno a 220 °C (o air fryer a 200 °C).","Mezcla gnocchi y pollo en dados con el aceite, sal y las especias.","Todo a la bandeja en una sola capa, 20 min (air fryer 15), removiendo a mitad.","Con ensalada al lado."],tip:"Como os gustan de snack, pero con el pollo ya es cena completa."},
+ m6g:{n:"Gnocchi gratinados con boloñesa de pavo",t:"cena",min:25,prot:42,ing:[["gnocchi",250],["pavo_picado",300],["tomate_triturado",300],["cebolla",1],["mozzarella",1],["oregano",null],["aceite",null,"1 cdta"]],
+  pasos:["Pocha la cebolla picada, 4 min, y dora el pavo picado, 5 min.","Añade tomate y orégano, 5 min.","Mezcla con los gnocchi crudos en una fuente y pon la mozzarella en trozos.","Horno a 220 °C, 12–15 min, hasta que gratine."],tip:"Los gnocchi se hacen con el jugo de la salsa en el horno."},
 /* MENÚ 1 · Clásico */
  c1:{n:"Crema de calabacín + tortilla de espinacas",t:"cena",min:10,prot:26,ing:[["crema_calabacin",500],["huevo",4],["claras",200],["espinacas",100],["aceite",null,"1 cdta"]],
   pasos:["Calienta la crema en dos boles al micro, 2–3 min.","Saltea las espinacas con el aceite, 1 min.","Bate huevos y claras con sal y échalos encima.","Cuaja 2 min por lado y parte en dos."],tip:"Las claras de brick suben mucho la proteína."},
@@ -341,16 +345,16 @@ const R={
 
 /* ---------- Menús ---------- */
 const MENUS=[
- {id:"clasico",n:"Dieta 1",d:"Lo básico que siempre funciona: tortilla, pollo, pescado y una pizza fit el sábado.",c:["c1","c2","c3","c4","c5","c6"],p:["p1","p2","p3","p4","p5","p1"]},
- {id:"medit",n:"Dieta 2",d:"Legumbre, pescado azul, ajillo y pisto. Sabor de casa.",c:["m2a","m2b","m2c","m2d","m2e","m2f"],p:["p4","p3","p6","p2","p7","p1"]},
- {id:"expres",n:"Dieta 3",d:"Para semanas liadas: casi todo en 10 minutos o menos.",c:["m3a","m3b","m3c","m3d","m3e","m3f"],p:["p1","p6","p3","p5","p4","p7"]},
- {id:"horno",n:"Dieta 4",d:"Metes la bandeja y te olvidas. Poco trabajo, algo más de espera.",c:["m4a","m4b","m4c","m4d","m4e","m4f"],p:["p2","p1","p4","p3","p6","p7"]},
- {id:"cuchara",n:"Dieta 5",d:"Sopas, cremas y legumbre para los días de frío.",c:["m5a","m5b","m5c","m5d","m5e","m5f"],p:["p3","p2","p1","p4","p6","p5"]},
- {id:"inter",n:"Dieta 6",d:"Fajitas, curry, ramen y burrito bowl, en versión ligera.",c:["m6a","m6b","m6c","m6d","m6e","m6f"],p:["p7","p4","p2","p1","p3","p6"]}
+ {id:"clasico",n:"Dieta 1",d:"Lo básico que siempre funciona: tortilla, pollo, pescado y una pizza fit el sábado.",c:["c1","c2","c3","c4","c5"],p:["p1","p2","p3","p4","p5"]},
+ {id:"medit",n:"Dieta 2",d:"Legumbre, pescado azul, ajillo y pisto. Sabor de casa.",c:["m2a","m2b","m2c","m2d","m2e"],p:["p4","p3","p6","p2","p7"]},
+ {id:"expres",n:"Dieta 3",d:"Para semanas liadas: casi todo en 10 minutos o menos.",c:["m3a","m3b","m3g","m3d","m3e"],p:["p1","p6","p3","p5","p4"]},
+ {id:"horno",n:"Dieta 4",d:"Metes la bandeja y te olvidas. Poco trabajo, algo más de espera.",c:["m4a","m4g","m4c","m4e","m4f"],p:["p2","p1","p4","p6","p7"]},
+ {id:"cuchara",n:"Dieta 5",d:"Sopas, cremas y legumbre para los días de frío.",c:["m5a","m5b","m5c","m5d","m5e"],p:["p3","p2","p1","p4","p6"]},
+ {id:"inter",n:"Dieta 6",d:"Fajitas, curry, ramen y burrito bowl, en versión ligera.",c:["m6a","m6b","m6c","m6g","m6e"],p:["p7","p4","p2","p1","p3"]}
 ];
-const DAYS=["Día 1","Día 2","Día 3","Día 4","Día 5","Día 6"];
-const SNACK_STOCK=[["yogur_prot",4],["manzana",2],["platano",2],["mandarina",6],["tortitas_arroz",10]];
-const LABEL={cena:"Cena",desayuno:"Desayuno",postre:"Postre",picar:"Picar"};
+const DAYS=["Día 1","Día 2","Día 3","Día 4","Día 5"];
+const SNACK_STOCK=[["manzana",2],["platano",2],["mandarina",6],["tortitas_arroz",10]];
+const LABEL={cena:"Cena",desayuno:"Desayuno",postre:"Postre",picar:"Merienda"};
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
 
@@ -372,8 +376,8 @@ function dayCard(name,items){
 function renderWeek(){
   const m=MENUS[mi],g=$("grid");g.innerHTML="";
   DAYS.forEach((d,i)=>g.append(dayCard(d,[[m.c[i],"cena"],[m.p[i],"postre"]])));
+  g.append(dayCard("Merienda",[["s2","picar"],["s3","picar"]]));
 }
-function renderSnacks(){const s=$("snacks");["s2","s1","s3"].forEach(id=>s.append(slot(id,"picar")));}
 
 /* ---------- Receta ---------- */
 function openR(id){
@@ -401,6 +405,30 @@ function buildList(){
   Object.values(out).forEach(arr=>arr.sort((x,y)=>(y.free-x.free)||(x.basic-y.basic)||I[x.k][0].localeCompare(I[y.k][0],"es")));
   return out;
 }
+/* ---------- Precio estimado: [precio €, tamaño del paquete en la unidad del producto] ---------- */
+const PRICE={
+ espinacas:[1.4,250],tomate:[0.35,1],pepino:[0.5,1],cebolla_morada:[0.4,1],cebolla:[0.3,1],lechuga:[1.2,1],patata:[0.25,1],limon:[0.35,1],
+ champi:[1.4,250],platano:[0.3,1],manzana:[0.4,1],mandarina:[0.2,1],zanahoria:[0.15,1],pimiento:[0.7,1],calabacin:[0.6,1],ajo:[0.5,10],
+ aguacate:[1,1],esparragos:[2,1],kiwi:[0.35,1],boniato:[0.7,1],fresas:[2.2,250],
+ pollo:[3.75,500],contramuslo:[3.5,500],pavo_lonchas:[2.2,200],pavo_filete:[4,500],pavo_picado:[3.2,400],atun:[3.3,3],sardinas:[1.2,1],
+ jamon_cocido:[2,200],jamon_serrano:[1.8,100],burger_pollo:[2.6,4],
+ huevo:[2.6,12],claras:[1.6,500],yogur_prot:[2.4,4],queso_batido:[1.4,500],yogur_griego:[1.6,4],yogur_natural:[0.9,4],mozzarella:[1.1,1],
+ gelatina:[1.2,4],natillas_prot:[2.2,4],leche:[0.95,1000],queso_fresco:[1.5,250],queso_rallado:[1.5,200],queso_lonchas:[1.6,10],feta:[2,200],
+ parmesano:[2.5,100],queso_cottage:[1.6,300],
+ crema_calabacin:[1.8,1000],crema_calabaza:[1.8,1000],crema_champi:[1.8,1000],crema_verduras:[1.8,1000],caldo:[1.1,1000],sopa_sobre:[0.5,1],
+ garbanzos:[0.8,1],lentejas:[0.8,1],alubias:[0.8,1],tortilla_int:[1.6,8],pan_molde:[1.4,16],pan_burger:[1.6,4],avena:[1.2,500],
+ tomate_triturado:[0.7,400],tortitas_arroz:[1,15],hummus:[1.5,240],arroz_micro:[1.4,2],fideos:[0.7,500],fideos_arroz:[1.6,200],maiz:[1.4,3],
+ aceitunas:[1,30],pisto:[1.6,560],leche_coco:[1.3,400],frutos_secos:[2.5,200],gnocchi:[1.6,500],
+ verduras_wok:[1.8,1],merluza:[5,400],judias:[1.2,750],frutos_rojos:[2.2,300],gambas:[5,300],bacalao:[6,400],espinacas_cong:[1.1,450],guisantes:[1.1,450],
+ pan_desayunos:[2,1],embutidos_desayunos:[3.5,1]
+};
+function estimate(list){
+  let t=0;
+  Object.values(list).forEach(items=>items.forEach(it=>{const pr=PRICE[it.k];if(!pr)return;
+    const q=it.free?1:it.q;t+=Math.ceil(q/pr[1]-1e-9)*pr[0];}));
+  const lo=Math.floor(t/5)*5,hi=lo+5;
+  return [lo,hi,t];
+}
 let LIST={};
 function renderShop(){
   LIST=buildList();const s=$("shop"),m=MENUS[mi];s.innerHTML="";let total=0,done=0;
@@ -416,6 +444,7 @@ function renderShop(){
     });
     s.append(box);
   });
+  const e=estimate(LIST);$("est").textContent=`(~${e[0]}–${e[1]} €)`;
   $("pc").textContent=`${done} / ${total}`;$("pb").style.width=(total?done/total*100:0)+"%";
 }
 $("reset").onclick=()=>{const p=MENUS[mi].id+"|";Object.keys(checked).forEach(k=>{if(k.startsWith(p))delete checked[k];});store.set("dietizador-compra-v2",checked);renderShop();toast("Lista desmarcada");};
@@ -437,7 +466,7 @@ MENUS.forEach((m,i)=>{const o=document.createElement("option");o.value=i;o.textC
 function setMenu(i){mi=(i+MENUS.length)%MENUS.length;sel.value=mi;store.set("dietizador-menu",MENUS[mi].id);renderWeek();renderShop();}
 sel.onchange=()=>setMenu(+sel.value);
 $("prev").onclick=()=>setMenu(mi-1);$("next").onclick=()=>setMenu(mi+1);
-renderSnacks();setMenu(mi);
+setMenu(mi);
 </script>
 
 </body>
